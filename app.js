@@ -8,7 +8,7 @@ const blogRouter = require('./controllers/blogs')
 const logger = require('./utils/logger')
 
 
-mongoose.connect(config.mongoUrl, {
+mongoose.connect(config.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
