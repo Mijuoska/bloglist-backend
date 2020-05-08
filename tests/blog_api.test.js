@@ -22,6 +22,8 @@ beforeEach(async () => {
     await blogObject.save()
 })
 
+describe('Format and number of blogs', async () => {
+
 test('blogs are returned as json', async () =>{
     await api  
         .get('/api/blogs')
@@ -34,6 +36,10 @@ test('there are four blogs', async () => {
 
     expect(response.body).toHaveLength(4)
 });
+
+});
+
+describe('Creating and updating blogs', async () => {
 
 
 test('a valid blog can be added', async () => {
@@ -99,8 +105,45 @@ test('Likes are always set to zero if undefined', async () => {
     expect(response.body.likes).toBeDefined()
 })
 
+test('Blog likes can be updated', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToUpdate = blogsAtStart[1]
+    
+    const updatedBlog = { likes: 1 }
 
+    const response = await api
+        .put(`/api/blogs/${blogToUpdate.id}`)
+        .send(updatedBlog)
+        .expect(200)
+    
+    expect(response.body.likes).toBe(6)
 
+})
+
+});
+
+describe('deletion of a blog', () => {
+test('Succeeds with status code 204 if id is valid', async ()  => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    console.log("Blog id " + blogToDelete.id)
+
+    await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .expect(204)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    expect(blogsAtEnd).toHaveLength(
+        helper.initialBlogs.length - 1
+    )
+
+    const title = blogsAtEnd.map(response => response.title)
+
+    expect(title).not.toContain(blogToDelete.title)
+});
+});
 afterAll(() => {
     mongoose.connection.close()
 })
