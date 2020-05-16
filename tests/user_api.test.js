@@ -41,4 +41,8 @@ describe('when there is initially one user at db', () => {
         const usernames = usersAtEnd.map(u => u.username)
         expect(usernames).toContain(newUser.username)
     })
+
+    afterAll(() => {
+         mongoose.connection.close()
+    })
 })
