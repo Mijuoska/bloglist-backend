@@ -73,8 +73,16 @@ blogRouter.put('/:id', async (request, response, next) => {
 
 
 blogRouter.delete('/:id', async (request, response, next)  => {
-    const deletedBlog = await Blog.findByIdAndRemove(request.params.id)
-    response.status(204).send("Blog with id " + request.params.id + " deleted.")
+    const foundBlog = await Blog.findById(request.params.id)
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
+    if (!request.token || decodedToken.id.toString() != foundBlog.user.toString()) {
+        return response.status(401).json({
+            error: 'Operation not authorized: wrong or missing token.'
+        })
+    } else {
+    const deletedBlog = await Blog.findByIdAndRemove(foundBlog._id)
+    return response.status(204).send("Blog with id " + request.params.id + " deleted.")
+    }
 });
 
 module.exports = blogRouter
