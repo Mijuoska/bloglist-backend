@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken')
 // Get all blogs route
 blogRouter.get('/', async (request, response, next) => {
     try {
-    const foundBlogs = await Blog.find({}).populate('author')
+    const foundBlogs = await Blog.find({}).populate('user')
     return response.json(foundBlogs)
     } catch (exception) {
         next(exception) 
