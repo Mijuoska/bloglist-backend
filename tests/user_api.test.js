@@ -9,17 +9,17 @@ const api = supertest(app)
  beforeEach(async () => {
      await User.deleteMany({})
 
-     let newUser = new User(helper.initialUsers[0])
-     await newUser.save()
+     let user = helper.initialUsers[0]
+     const passwordHash = await bcrypt.hash(user.password, 10)
 
 
-     const passwordHash = await bcrypt.hash('sekret', 10)
-     const user = new User({
-         username: 'root',
+     const newUser = new User({
+         name: user.name,
+         username: user.username,
          passwordHash
      })
 
-     await user.save()
+     await newUser.save()
  })
 
 describe('when there is initially one user at db', () => {
@@ -69,9 +69,9 @@ describe('when there is initially one user at db', () => {
          const usersAtStart = await helper.usersInDb()
 
          const newUser = {
-             username: 'mijuoska',
-             name: 'Miika Kallasoja',
-             password: 'salainen',
+             username: 'testuser',
+             name: 'Test User',
+             password: '123abc',
          }
 
          await api
@@ -116,6 +116,14 @@ describe('when there is initially one user at db', () => {
 
          const usersAtEnd = await helper.usersInDb()
          expect(usersAtEnd).toHaveLength(usersAtStart.length)
+     })
+
+     test('Login succeeds', async () => {
+         const user = {"username": "testuser", "password": "123abc"}
+         await api
+            .post('/api/login')
+            .send(user)
+            .expect(200)
      })
 
 })

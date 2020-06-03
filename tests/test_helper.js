@@ -31,8 +31,8 @@ const initialBlogs = [{
     }]
 
 const initialUsers = [ {
-    username: 'mijuoska',
-    name: "Miika Kallasoja",
+    username: 'testuser',
+    name: "Test User",
     password: "123abc"
     }
 ]

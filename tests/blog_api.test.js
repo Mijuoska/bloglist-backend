@@ -4,10 +4,12 @@ const helper = require('./test_helper')
 const app = require('../app')
 const api = supertest(app)
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 
 beforeEach(async () => {
     await Blog.deleteMany({})
+    await User.deleteMany({})
 
     let blogObject = new Blog(helper.initialBlogs[0])
     await blogObject.save()
@@ -20,7 +22,14 @@ beforeEach(async () => {
 
     blogObject = new Blog(helper.initialBlogs[3])
     await blogObject.save()
+
+    await api
+        .post('/api/users')
+        .expect(200)
+        .send(helper.initialUsers[0])
 })
+
+
 
 describe('Format and number of blogs', async () => {
 
@@ -41,8 +50,14 @@ test('there are four blogs', async () => {
 
 describe('Creating and updating blogs', async () => {
 
-
 test('a valid blog can be added', async () => {
+    const response = await api
+        .post('/api/login')
+        .send({username: 'testuser', password: '123abc'})
+        .expect(200)
+
+    const token = 'bearer ' + response.token
+
     const newBlog = {
         title: "Jest blog post",
         author: "Jest",
@@ -52,6 +67,7 @@ test('a valid blog can be added', async () => {
 
     await api
         .post('/api/blogs')
+       .set('Authorization', token)
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/)
@@ -68,6 +84,7 @@ expect(author).toContain("Jest")
 })
 
 test('Post without title or url returns 400 Bad Request', async () =>{
+    
      const newBlog = {
          author: "Jest",
          url: "jest.com",
