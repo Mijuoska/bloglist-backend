@@ -3,30 +3,58 @@ const supertest = require('supertest')
 const helper = require('./test_helper')
 const app = require('../app')
 const api = supertest(app)
+const bcrypt = require('bcrypt')
 const Blog = require('../models/blog')
 const User = require('../models/user')
 
+let token 
 
 beforeEach(async () => {
     await Blog.deleteMany({})
     await User.deleteMany({})
 
+     // setup initial user
+     let user = helper.initialUsers[0]
+     const passwordHash = await bcrypt.hash(user.password, 10)
+
+     const newUser = new User({
+         name: user.name,
+         username: user.username,
+         passwordHash
+     })
+
+     const savedUser = await newUser.save()
+
+   
+
     let blogObject = new Blog(helper.initialBlogs[0])
+    blogObject.user = savedUser._id
     await blogObject.save()
 
     blogObject = new Blog(helper.initialBlogs[1])
+    blogObject.user = savedUser._id
     await blogObject.save()
 
     blogObject = new Blog(helper.initialBlogs[2])
+    blogObject.user = savedUser._id
     await blogObject.save()
 
     blogObject = new Blog(helper.initialBlogs[3])
+    blogObject.user = savedUser._id
     await blogObject.save()
 
-    await api
-        .post('/api/users')
+   
+
+    // log in with testuser
+    const response = await api
+        .post('/api/login')
+        .send({
+            username: 'testuser',
+            password: '123abc'
+        })
         .expect(200)
-        .send(helper.initialUsers[0])
+
+    token = 'Bearer ' + response.body.token
 })
 
 
@@ -51,12 +79,6 @@ test('there are four blogs', async () => {
 describe('Creating and updating blogs', async () => {
 
 test('a valid blog can be added', async () => {
-    const response = await api
-        .post('/api/login')
-        .send({username: 'testuser', password: '123abc'})
-        .expect(200)
-
-    const token = 'bearer ' + response.token
 
     const newBlog = {
         title: "Jest blog post",
@@ -93,6 +115,7 @@ test('Post without title or url returns 400 Bad Request', async () =>{
 
      const response = await api
          .post('/api/blogs')
+         .set('Authorization', token)
          .send(newBlog)
          .expect(400)
     
@@ -115,6 +138,7 @@ test('Likes are always set to zero if undefined', async () => {
 
      const response = await api
           .post('/api/blogs')
+          .set('Authorization', token)
           .send(newBlog)
           .expect(201)
 
@@ -148,6 +172,7 @@ test('Succeeds with status code 204 if id is valid', async ()  => {
 
     await api
         .delete(`/api/blogs/${blogToDelete.id}`)
+        .set('Authorization', token)
         .expect(204)
 
     const blogsAtEnd = await helper.blogsInDb()
