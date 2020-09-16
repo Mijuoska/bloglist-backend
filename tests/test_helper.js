@@ -30,11 +30,18 @@ const initialBlogs = [{
         __v: 0
     }]
 
-const initialUsers = [ {
+const initialUsersForBlogTest = [ {
     username: 'testuser',
     name: "Test User",
     password: "123abc"
     }
+]
+
+const initialUsersForUserTest = [ {
+    username: 'testerman',
+    name: 'Tester Man',
+    password: 'abcxyz123'
+}
 ]
 
 const nonExistingId = async () => {
@@ -68,5 +75,5 @@ const logInAndReturnToken = async () => {
 }
 
 module.exports = {
-    initialBlogs, initialUsers, nonExistingId, blogsInDb, usersInDb, logInAndReturnToken
+    initialBlogs, initialUsersForBlogTest, initialUsersForUserTest, nonExistingId, blogsInDb, usersInDb, logInAndReturnToken
 }

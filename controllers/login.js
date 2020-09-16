@@ -8,15 +8,16 @@ loginRouter.post('/', async (request, response) => {
 
 
 const user = await User.findOne({ username: body.username })
-console.log(user.passwordHash);
+let passwordCorrect = ''
+if (user) {
+passwordCorrect = user === null ? false : await bcrypt.compare(body.password, user.passwordHash)
+} else {
+    return response.status(401).json({
+        error: 'invalid username or password'
+    })
+}
 
-console.log(body.username);
-console.log(body.password);
-
-
-const passwordCorrect = user === null ? false : await bcrypt.compare(body.password, user.passwordHash)
-
-if (!(user && passwordCorrect)) {
+if (!passwordCorrect) {
     return response.status(401).json({
         error: 'invalid username or password'
     })
@@ -29,7 +30,7 @@ const userForToken = {
 
 const token = jwt.sign(userForToken, process.env.SECRET)
 
-response.status(200).send( { token, username: user.username, name: user.name })
+response.status(200).send( { token, username: user.username, name: user.name, id: user._id })
 
 })
 

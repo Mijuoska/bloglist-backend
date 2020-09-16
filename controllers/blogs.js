@@ -53,24 +53,22 @@ blogRouter.post('/', async (request, response, next) => {
 })
 
 // Update route
-
 blogRouter.put('/:id', async (request, response, next) => {
     const body = request.body
     
     const existingBlog = await Blog.findById(request.params.id)
-     const existingLikes = Number(existingBlog.likes)
+    const existingLikes = Number(existingBlog.likes)
     const newLikes = existingLikes + Number(body.likes)
 
     const blog = {likes: newLikes}
     try {
     const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
-    response.status(200).send(updatedBlog)
-    } catch(error) {
-        next(error)
+    response.status(200).json(updatedBlog.toJSON())
+    } catch(exception) {
+        next(exception)
     }
 
 })
-
 
 blogRouter.delete('/:id', async (request, response, next)  => {
     const foundBlog = await Blog.findById(request.params.id)

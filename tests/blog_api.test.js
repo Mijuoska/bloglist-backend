@@ -10,11 +10,11 @@ const User = require('../models/user')
 let token 
 
 beforeEach(async () => {
+     await User.deleteMany({})
     await Blog.deleteMany({})
-    await User.deleteMany({})
 
      // setup initial user
-     let user = helper.initialUsers[0]
+     let user = helper.initialUsersForBlogTest[0]
      const passwordHash = await bcrypt.hash(user.password, 10)
 
      const newUser = new User({
