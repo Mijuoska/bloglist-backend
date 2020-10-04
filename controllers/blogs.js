@@ -1,5 +1,6 @@
 const blogRouter = require('express').Router()
 const Blog = require('../models/blog')
+const Comment = require('../models/comments')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 
@@ -7,7 +8,9 @@ const jwt = require('jsonwebtoken')
 // Get all blogs route
 blogRouter.get('/', async (request, response, next) => {
     try {
-    const foundBlogs = await Blog.find({}).populate('user', 'username name')
+    const foundBlogs = await Blog.find({})
+    .populate('user', 'username name')
+    .populate('comments', 'content')
     return response.json(foundBlogs.map(blog => blog.toJSON()))
     } catch (exception) {
         next(exception) 
@@ -64,7 +67,8 @@ blogRouter.put('/:id', async (request, response, next) => {
     try {
     const updatedBlog = 
         await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
-        .populate('user', 'username name')
+         .populate('user', 'username name')
+         .populate('comments', 'content')
     response.status(200).json(updatedBlog.toJSON())
     } catch(exception) {
         next(exception)
@@ -84,5 +88,23 @@ blogRouter.delete('/:id', async (request, response, next)  => {
     return response.status(204).send("Blog with id " + request.params.id + " deleted.")
     }
 });
+
+blogRouter.post('/:id/comments', async (request, response, next) => {
+    const blog = await Blog.findById(request.params.id)
+    const comment = new Comment(
+        {
+          content: request.body.content,
+          blog: request.params.id
+        }
+    )
+    try {
+        const savedComment = await comment.save()
+        blog.comments = [...blog.comments, savedComment._id]
+        await blog.save()
+        response.status(201).json(savedComment.toJSON())
+    } catch(exception) {
+        next(exception)
+    }
+})
 
 module.exports = blogRouter
